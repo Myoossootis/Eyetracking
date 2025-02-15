@@ -30,7 +30,7 @@
     <ClCompile Include="pupil_center.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="reflection_center_area.cpp">
+    <ClCompile Include="Eyetracking_main_algorithm.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="reflection_center.cpp">

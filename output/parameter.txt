@@ -1,0 +1,4 @@
+Pupil_Center X: 311.119, Pupil_Center Y: 252.499
+reflection_Center X: 311.267, reflection_Center Y: 256.000
+Pupil_Center X: 472.847, Pupil_Center Y: 242.885
+reflection_Center X: 472.619, reflection_Center Y: 246.905
