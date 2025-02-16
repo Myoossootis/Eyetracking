@@ -30,11 +30,19 @@
     <ClCompile Include="pupil_center.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Eyetracking_main_algorithm.cpp">
+    <ClCompile Include="pupil_detection.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="reflection_center.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pupil_detection.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
