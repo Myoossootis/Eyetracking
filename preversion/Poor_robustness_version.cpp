@@ -5,10 +5,11 @@
 #include <queue>
 #include <iomanip>
 
+
 int main() {
     // 加载明瞳图像和暗瞳图像
-    cv::Mat image_dark = cv::imread("4.bmp", cv::IMREAD_GRAYSCALE);
-    cv::Mat image_light = cv::imread("3.bmp", cv::IMREAD_GRAYSCALE);
+    cv::Mat image_dark = cv::imread("1.bmp", cv::IMREAD_GRAYSCALE);
+    cv::Mat image_light = cv::imread("2.bmp", cv::IMREAD_GRAYSCALE);
 
     // 检查图像是否加载成功
     if (image_light.empty() || image_dark.empty()) {
@@ -20,65 +21,20 @@ int main() {
     cv::Mat pupil_position;
     cv::absdiff(image_dark, image_light, pupil_position);
     cv::normalize(pupil_position, pupil_position, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-    cv::imshow("ps", pupil_position);
 
-    // Step 2: 将明瞳图像上的瞳孔区域去除
-    cv::Mat pupil_removed;
-    cv::subtract(image_light, pupil_position, pupil_removed);
+    // 高斯滤波
+    cv::Mat blurred_image_light;
+    cv::GaussianBlur(image_light, blurred_image_light, cv::Size(5, 5), 0);
 
-    // Step 3: 用暗瞳图像减去上一部分，得到反射亮斑位置
-    cv::Mat reflection_spot;
-    cv::subtract(image_dark, pupil_removed, reflection_spot);
-    cv::imshow("ref", reflection_spot);
-
-    //// 高斯滤波
-    //cv::Mat blurred_image_light;
-    //cv::GaussianBlur(image_light, blurred_image_light, cv::Size(5, 5), 0);
-    //cv::imshow("gaussion", blurred_image_light);
-
-  //// 最大值滤波
-  //  cv::Mat blurred_pupilposition;
-  //  cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2, 2));  // 圆形结构元素
-
-  //  cv::dilate(reflection_spot, blurred_pupilposition, element); // 使用最大值滤波（膨胀操作）
-  //  cv::imshow("Dilated", blurred_pupilposition);
-
-
-
-    //中值滤波
-    cv::Mat blurred_pupilposition;
-    // 使用中值滤波器进行处理
-    cv::medianBlur(reflection_spot, blurred_pupilposition, 5);  // 3是滤波器大小，你可以根据需要调整
-    //cv::imshow("Median Blurred", blurred_pupilposition);
-
-    //// 最小值滤波（腐蚀操作）
-    //cv::Mat blurred_pupilposition;
-    //cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2, 2));  // 圆形结构元素
-
-    //cv::erode(reflection_spot, blurred_pupilposition, element); // 使用最小值滤波（腐蚀操作）
-    //cv::imshow("Eroded", blurred_pupilposition);
-
-
-    double alpha = 2.0; // 对比度因子
-    int beta = 50;      // 亮度偏移量
-    cv::Mat enhanced;
-    convertScaleAbs(blurred_pupilposition, enhanced, alpha, beta); // 直接在主函数中调整对比度和亮度
-    imshow("Contrast Enhanced", enhanced);
-    //cv::imwrite("test_only/median_x2.jpg", enhanced);
-    // 1. 使用 Canny 边缘检测计算边缘图像
-    cv::Mat edges;
-    cv::Canny(enhanced, edges, 50, 100);  // Canny 边缘检测
-    cv::imshow("canny", edges);
-    // 2. 使用逻辑“或”操作生成改进的边缘图像
-    cv::Mat improved_edges = enhanced | edges;
-
-    // 3. 计算直方图并通过 Otsu 方法进行全局阈值处理
+    // 阈值化处理
     cv::Mat binary;
     double threshold_value = 0; // 大津法会自动计算阈值
-    cv::threshold(improved_edges, binary, threshold_value, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-    cv::imshow("Thresholded with Otsu", binary);
+    cv::threshold(blurred_image_light, binary, threshold_value, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+    cv::imshow("1", binary);
 
-
+    // 边缘检测
+    cv::Mat edges;
+    cv::Canny(binary, edges, 50, 150);
 
     // 查找轮廓
     std::vector<std::vector<cv::Point>> contours;
@@ -94,9 +50,6 @@ int main() {
                 pupil_contour = contour;
             }
         }
-    }
-    else {
-        std::cerr << "No contours found!" << std::endl;
     }
 
     // 绘制椭圆
@@ -115,21 +68,14 @@ int main() {
         if (contour.size() < 5) continue;  // 跳过点数不足5个的轮廓
 
         // 拟合椭圆
-        cv::RotatedRect fitted_ellipse;
-        try {
-            fitted_ellipse = cv::fitEllipse(contour);
-        }
-        catch (const std::exception& e) {
-            std::cerr << "Ellipse fitting failed: " << e.what() << std::endl;
-            continue;  // 跳过失败的轮廓
-        }
+        cv::RotatedRect fitted_ellipse = cv::fitEllipse(contour);
 
         // 计算轮廓的面积和长宽比
         double area = cv::contourArea(contour);
         double aspectRatio = std::abs(fitted_ellipse.size.width / fitted_ellipse.size.height);
 
         // 根据面积和长宽比筛选合适的椭圆
-        if (area > 1 && area < 200 && aspectRatio > 0.5 && aspectRatio < 2.0) {
+        if (area > 100 && area < 1000 && aspectRatio > 0.5 && aspectRatio < 2.0) {
             // 获取椭圆的中心点
             cv::Point2f center = fitted_ellipse.center;
 
@@ -150,12 +96,7 @@ int main() {
 
                 // 写入文件
                 outFile << "Pupil_Center X: " << center.x << ", Pupil_Center Y: " << center.y << std::endl;
-                if (centers.empty()) {
-                    std::cerr << "No valid ellipses were drawn." << std::endl;
-                }
-                else {
-                    std::cout << "Successfully drew " << centers.size() << " ellipses." << std::endl;
-                }
+
 
                 // 提取椭圆内的斑点
                 cv::Mat mask_raw = cv::Mat::zeros(image_light.size(), CV_8UC1);
@@ -199,13 +140,13 @@ int main() {
     }
     outFile.close();
 
-    //cv::imwrite("output/pupil_position.jpg", pupil_position);
-    ////cv::imwrite("test/reflection_center_area.jpg", result);
-    //cv::imwrite("output/binary.jpg", binary);
-    //cv::imwrite("output/reflection_center.jpg", detected_blobs);
-    //cv::imshow("Blobs", detected_blobs);
+    cv::imwrite("output/pupil_position.jpg", pupil_position);
+    //cv::imwrite("test/reflection_center_area.jpg", result);
+    cv::imwrite("output/binary.jpg", binary);
+    cv::imwrite("output/reflection_center.jpg", detected_blobs);
+    cv::imshow("Blobs", detected_blobs);
     cv::imshow("3", result);
-    //cv::imshow("4", edges);
+    cv::imshow("4", edges);
     cv::waitKey(0);
     return 0;
 }

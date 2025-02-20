@@ -1,0 +1,5 @@
+Pupil_Center X: 176.954, Pupil_Center Y: 568.770
+Pupil_Center X: 523.978, Pupil_Center Y: 559.912
+Pupil_Center X: 554.409, Pupil_Center Y: 512.371
+Pupil_Center X: 405.043, Pupil_Center Y: 294.419
+Pupil_Center X: 277.905, Pupil_Center Y: 290.948

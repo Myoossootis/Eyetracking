@@ -71,7 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>E:\c++\Eyetracking\include;E:\c++\Eyetracking\lib;E:\opencv\opencv\build\x64\vc16\lib;E:\opencv\opencv\build\include;$(IncludePath)</IncludePath>
+    <IncludePath>E:\opencv\CMake_opencv\install\x64\vc17\lib;E:\opencv\CMake_opencv\install\include;E:\c++\Eyetracking\include;E:\c++\Eyetracking\lib;E:\opencv\opencv\build\x64\vc16\lib;E:\opencv\opencv\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\opencv\CMake_opencv\install\x64\vc17\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -111,7 +112,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>E:\opencv\opencv\build\x64\vc16\lib\opencv_world4100d.lib;E:\c++\Eyetracking\lib\avutil.lib;E:\c++\Eyetracking\lib\avcodec.lib;E:\c++\Eyetracking\lib\avdevice.lib;E:\c++\Eyetracking\lib\avfilter.lib;E:\c++\Eyetracking\lib\avformat.lib;E:\c++\Eyetracking\lib\postproc.lib;E:\c++\Eyetracking\lib\swresample.lib;E:\c++\Eyetracking\lib\swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>E:\opencv\opencv\build\x64\vc16\lib\opencv_world4100d.lib;E:\c++\Eyetracking\lib\avutil.lib;E:\c++\Eyetracking\lib\avcodec.lib;E:\c++\Eyetracking\lib\avdevice.lib;E:\c++\Eyetracking\lib\avfilter.lib;E:\c++\Eyetracking\lib\avformat.lib;E:\c++\Eyetracking\lib\postproc.lib;E:\c++\Eyetracking\lib\swresample.lib;E:\c++\Eyetracking\lib\swscale.lib;opencv_aruco4100d.lib;opencv_bgsegm4100d.lib;opencv_bioinspired4100d.lib;opencv_calib3d4100d.lib;opencv_ccalib4100d.lib;opencv_core4100d.lib;opencv_datasets4100d.lib;opencv_dnn4100d.lib;opencv_dnn_objdetect4100d.lib;opencv_dnn_superres4100d.lib;opencv_dpm4100d.lib;opencv_face4100d.lib;opencv_features2d4100d.lib;opencv_flann4100d.lib;opencv_fuzzy4100d.lib;opencv_gapi4100d.lib;opencv_hfs4100d.lib;opencv_highgui4100d.lib;opencv_imgcodecs4100d.lib;opencv_imgproc4100d.lib;opencv_img_hash4100d.lib;opencv_intensity_transform4100d.lib;opencv_line_descriptor4100d.lib;opencv_mcc4100d.lib;opencv_ml4100d.lib;opencv_objdetect4100d.lib;opencv_optflow4100d.lib;opencv_phase_unwrapping4100d.lib;opencv_photo4100d.lib;opencv_plot4100d.lib;opencv_quality4100d.lib;opencv_rapid4100d.lib;opencv_reg4100d.lib;opencv_rgbd4100d.lib;opencv_saliency4100d.lib;opencv_shape4100d.lib;opencv_stereo4100d.lib;opencv_stitching4100d.lib;opencv_structured_light4100d.lib;opencv_superres4100d.lib;opencv_surface_matching4100d.lib;opencv_text4100d.lib;opencv_tracking4100d.lib;opencv_video4100d.lib;opencv_videoio4100d.lib;opencv_videostab4100d.lib;opencv_wechat_qrcode4100d.lib;opencv_xfeatures2d4100d.lib;opencv_ximgproc4100d.lib;opencv_xobjdetect4100d.lib;opencv_xphoto4100d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -132,31 +133,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="avformat.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="pupil.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="reflection_center.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="pupil_detection.cpp">
+    <ClCompile Include="main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="test.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    <ClCompile Include="reflection.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="pupil_center.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="video.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    <ClCompile Include="pupil.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pupil_detection.h" />
+    <ClInclude Include="detection.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

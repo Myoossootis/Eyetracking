@@ -105,9 +105,9 @@ int main() {
     //cv::imshow("2",blurred_pupil_position);
 
     
-    cv::imwrite("test/pupil_position.jpg", pupil_position);
-    cv::imwrite("test/pupil_center.jpg", result);
-    cv::imwrite("test/binary.jpg", binary);
+    //cv::imwrite("test/pupil_position.jpg", pupil_position);
+    //cv::imwrite("test/pupil_center.jpg", result);
+    //cv::imwrite("test/binary.jpg", binary);
    /* cv::imwrite("test/log_result.jpg",laplacian);*/
     //cv::imwrite("test/gaussion.jpg", blurred_pupil_position);
     cv::imshow("3", result);
