@@ -24,6 +24,12 @@
     <ClCompile Include="pupil.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="preversion\pupil_origin.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="preversion\reflection_origin.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="detection.h">
