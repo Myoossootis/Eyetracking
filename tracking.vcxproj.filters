@@ -30,6 +30,18 @@
     <ClCompile Include="preversion\reflection_origin.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="test_only\pupil_center.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="zft.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="grad.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="grad_original.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="detection.h">
