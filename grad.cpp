@@ -120,7 +120,7 @@ public:
 
 int main() {
     // 读取图像
-    cv::Mat image = cv::imread("7.bmp", cv::IMREAD_GRAYSCALE);
+    cv::Mat image = cv::imread("12.png", cv::IMREAD_GRAYSCALE);
     if (image.empty()) {
         std::cerr << "Error: Unable to load image!" << std::endl;
         return -1;
@@ -136,7 +136,7 @@ int main() {
 
     // 眼睛检测
     std::vector<cv::Rect> eyes;
-    eye_cascade.detectMultiScale(image, eyes, 1.1, 4, 0, cv::Size(30, 30));
+    eye_cascade.detectMultiScale(image, eyes, 1.05, 6, 0, cv::Size(40, 40));
     if (eyes.size() != 2) {
         std::cerr << "Error: Exactly two eyes are required for this operation!" << std::endl;
         return -1;
