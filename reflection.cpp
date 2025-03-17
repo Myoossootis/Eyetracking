@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip> 
-// 加载图像
+
+// 加载图像函数
 cv::Mat load_image(const std::string& file_path) {
     cv::Mat image = cv::imread(file_path, cv::IMREAD_GRAYSCALE);
     if (image.empty()) {
@@ -26,9 +27,9 @@ std::vector<cv::Rect> detect_eyes(const cv::Mat& image) {
     return eyes;
 }
 
-// 对眼睛区域进行处理（最大值滤波 + 中值滤波）
+// 处理眼睛区域：最大值滤波和中值滤波的组合 + 差分运算
 cv::Mat process_eye_area(const cv::Mat& eye, int max_filter_size, int median_filter_size) {
-    // 确保核大小为奇数
+    // 确保滤波器尺寸为奇数
     max_filter_size = max_filter_size % 2 == 0 ? max_filter_size + 1 : max_filter_size;
     median_filter_size = median_filter_size % 2 == 0 ? median_filter_size + 1 : median_filter_size;
 
@@ -40,20 +41,20 @@ cv::Mat process_eye_area(const cv::Mat& eye, int max_filter_size, int median_fil
     cv::Mat median_filtered;
     cv::medianBlur(eye, median_filtered, median_filter_size);
 
-    // 计算最大值滤波结果减去中值滤波结果
+    // 使用最大值滤波结果减去中值滤波结果得到差分图像
     cv::Mat result;
     cv::subtract(max_filtered, median_filtered, result);
 
     return result;
 }
 
-// 提取亮斑中心坐标并绘制
+// 提取亮斑中心并在原图上标记出来
 void extract_bright_spot_center(const cv::Mat& result, const cv::Rect& eye_rect, cv::Mat& original, std::ofstream& outFile) {
-    // 阈值分割提取亮斑区域
+    // 对差分图像进行二值化处理
     cv::Mat binary;
-    cv::threshold(result, binary, 50, 255, cv::THRESH_BINARY); // 调整阈值以适应亮斑
+    cv::threshold(result, binary, 50, 255, cv::THRESH_BINARY); // 阈值可以根据实际情况调整
 
-    // 查找轮廓
+    // 寻找轮廓
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
@@ -62,12 +63,12 @@ void extract_bright_spot_center(const cv::Mat& result, const cv::Rect& eye_rect,
         return;
     }
 
-    // 假设最大的轮廓是亮斑
+    // 找到面积最大的轮廓作为亮斑
     auto largest_contour = *std::max_element(contours.begin(), contours.end(), [](const auto& a, const auto& b) {
         return cv::contourArea(a) < cv::contourArea(b);
         });
 
-    // 计算质心
+    // 计算中心
     cv::Moments m = cv::moments(largest_contour);
     if (m.m00 == 0) {
         std::cerr << "No bright spot detected!" << std::endl;
@@ -77,14 +78,14 @@ void extract_bright_spot_center(const cv::Mat& result, const cv::Rect& eye_rect,
     int cx = static_cast<int>(m.m10 / m.m00);
     int cy = static_cast<int>(m.m01 / m.m00);
 
-    // 将亮斑中心绘制在原图上
-    cv::circle(original, cv::Point(eye_rect.x + cx, eye_rect.y + cy), 3, cv::Scalar(0, 0, 255), -1); // 红色圆点
-    outFile << std::fixed << std::setprecision(3);  // 设置小数点后3位
+    // 在原图上标记亮斑中心并输出坐标
+    cv::circle(original, cv::Point(eye_rect.x + cx, eye_rect.y + cy), 3, cv::Scalar(0, 0, 255), -1); // 绘制红点
+    outFile << std::fixed << std::setprecision(3);  // 设置小数点精度为3位
     // 写入文件
     outFile << "Bright Spot Center: (" << (eye_rect.x + cx) << ", " << (eye_rect.y + cy) << ")" << std::endl;
 }
 
-// 反射点检测功能实现
+// 光斑检测主函数
 void detect_reflection(const std::string& image_path, const std::string& output_file) {
     // 加载图像
     cv::Mat image = load_image(image_path);
@@ -104,11 +105,11 @@ void detect_reflection(const std::string& image_path, const std::string& output_
         return a.x < b.x;
         });
 
-    // 提取左眼和右眼区域
+    // 分别获取左右眼区域
     cv::Mat left_eye = image(eyes[0]);
     cv::Mat right_eye = image(eyes[1]);
 
-    // 处理眼睛区域
+    // 处理左右眼区域
     cv::Mat result_left = process_eye_area(left_eye, 5, 3);
     cv::Mat result_right = process_eye_area(right_eye, 5, 3);
 
@@ -119,7 +120,7 @@ void detect_reflection(const std::string& image_path, const std::string& output_
         return;
     }
 
-    // 提取左眼和右眼的亮斑中心并绘制
+    // 提取左右眼亮斑中心并在原图上标记
     extract_bright_spot_center(result_left, eyes[0], image, outFile);
     extract_bright_spot_center(result_right, eyes[1], image, outFile);
 
@@ -131,6 +132,6 @@ void detect_reflection(const std::string& image_path, const std::string& output_
     cv::imshow("Processed Left Eye", result_left);
     cv::imshow("Processed Right Eye", result_right);
 
-    // 等待按键
+    // 等待按键退出
     cv::waitKey(0);
 }

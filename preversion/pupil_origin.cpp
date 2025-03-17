@@ -38,7 +38,7 @@ int main() {
 
     // Step 3: 在检测到的眼睛区域内对明瞳和暗瞳图像进行处理
     cv::Mat pupil_position = image_light.clone(); // 创建一个与明瞳图像相同大小的矩阵用于显示结果
-
+    /*cv::imshow("pupil_position", pupil_position);*/
     // 打开输出文件
     std::ofstream outFile("output/ellipse_centers.txt");
     if (!outFile.is_open()) {
@@ -51,14 +51,15 @@ int main() {
         // 提取明瞳和暗瞳图像的眼睛区域
         cv::Mat eye_light = image_light(eye);
         cv::Mat eye_dark = image_dark(eye);
-
+        cv::imshow("pupil_position", eye_light);
+        cv::imshow("pupil_position", eye_dark);
         // 明瞳减去暗瞳，得到瞳孔位置
         cv::Mat eye_pupil_position;
         cv::absdiff(eye_light, eye_dark, eye_pupil_position);
-
+        
         // 将结果放回原图对应位置
         eye_pupil_position.copyTo(pupil_position(eye));
-
+        cv::imshow("pupil", eye_pupil_position);
         // 高斯模糊，减少噪声
         cv::Mat blurred_eye;
         cv::GaussianBlur(eye_pupil_position, blurred_eye, cv::Size(5, 5), 1.5);
