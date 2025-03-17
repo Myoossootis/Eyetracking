@@ -42,9 +42,6 @@
     <ClCompile Include="grad_original.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="face_eye_detect.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="detection.h">
