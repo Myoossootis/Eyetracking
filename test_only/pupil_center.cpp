@@ -1,117 +1,108 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
-#include<vector>
-#include<fstream>
-int main() {
-    // 加载明瞳图像和暗瞳图像
-    cv::Mat image_dark = cv::imread("1.bmp", cv::IMREAD_GRAYSCALE);
-    cv::Mat image_light = cv::imread("2.bmp", cv::IMREAD_GRAYSCALE);
+#include <fstream>
+#include <vector>
+#include <algorithm>
 
-    // 检查图像是否加载成功
+int main() {
+    // Step 1: 加载明瞳和暗瞳图像
+    cv::Mat image_light = cv::imread("2.bmp", cv::IMREAD_GRAYSCALE); // 明瞳图像
+    cv::Mat image_dark = cv::imread("1.bmp", cv::IMREAD_GRAYSCALE);   // 暗瞳图像
+
     if (image_light.empty() || image_dark.empty()) {
         std::cerr << "Error: Unable to load images!" << std::endl;
         return -1;
     }
 
-    // Step 1: 暗瞳图像减去明瞳图像，得到瞳孔位置
-    cv::Mat pupil_position;
-    cv::absdiff(image_dark, image_light, pupil_position);
-    cv::normalize(pupil_position, pupil_position, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+    // Step 2: 使用明瞳图像进行眼睛检测
+    // 加载眼睛检测器
+    cv::CascadeClassifier eye_cascade;
+    if (!eye_cascade.load("haarcascades/haarcascade_eye.xml")) { // 确保路径正确
+        std::cerr << "Error: Unable to load eye cascade classifier!" << std::endl;
+        return -1;
+    }
 
-    // Step 2：gaussion滤波
-    cv::Mat blurred_image_light;
-    cv::GaussianBlur(image_light, blurred_image_light, cv::Size(5, 5), 0);
+    // 检测眼睛（使用明瞳图像）
+    std::vector<cv::Rect> eyes;
+    eye_cascade.detectMultiScale(image_light, eyes, 1.1, 4, 0, cv::Size(30, 30)); // 最小检测尺寸
 
-    cv::Mat binary;
-    double threshold_value = 0; // 大津法会自动计算阈值
-    cv::threshold(blurred_image_light, binary, threshold_value, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-    cv::imshow("1", binary);
-    //边缘检测
-    cv::Mat edges;
-    cv::Canny(binary, edges, 50, 150);
-    //查找轮廓
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
-    
-    std::vector<cv::Point> pupil_contour;
-    if (!contours.empty()) {
-        double max_area = 0;
+    // 检查是否检测到眼睛
+    if (eyes.empty()) {
+        std::cerr << "Error: No eyes detected!" << std::endl;
+        return -1;
+    }
+
+    // 按x坐标排序，确保左眼在前，右眼在后
+    std::sort(eyes.begin(), eyes.end(), [](const cv::Rect& a, const cv::Rect& b) {
+        return a.x < b.x;
+        });
+
+    // Step 3: 在检测到的眼睛区域内对明瞳和暗瞳图像进行处理
+    cv::Mat pupil_position = image_light.clone(); // 创建一个与明瞳图像相同大小的矩阵用于显示结果
+    /*cv::imshow("pupil_position", pupil_position);*/
+    // 打开输出文件
+    std::ofstream outFile("output/ellipse_centers.txt");
+    if (!outFile.is_open()) {
+        std::cerr << "Error: Unable to open output file!" << std::endl;
+        return -1;
+    }
+
+    // 处理每个眼睛区域
+    for (const auto& eye : eyes) {
+        // 提取明瞳和暗瞳图像的眼睛区域
+        cv::Mat eye_light = image_light(eye);
+        cv::Mat eye_dark = image_dark(eye);
+        cv::imshow("pupil_position", eye_light);
+        cv::imshow("pupil_position", eye_dark);
+        // 明瞳减去暗瞳，得到瞳孔位置
+        cv::Mat eye_pupil_position;
+        cv::absdiff(eye_light, eye_dark, eye_pupil_position);
+
+        // 将结果放回原图对应位置
+        eye_pupil_position.copyTo(pupil_position(eye));
+        cv::imshow("pupil", eye_pupil_position);
+        // 高斯模糊，减少噪声
+        cv::Mat blurred_eye;
+        cv::GaussianBlur(eye_pupil_position, blurred_eye, cv::Size(5, 5), 1.5);
+
+        // 使用 Canny 边缘检测
+        cv::Mat edges;
+        cv::Canny(blurred_eye, edges, 50, 150);  // 调整阈值以适应图像
+        cv::imshow("Edges", edges);
+
+        // 查找轮廓
+        std::vector<std::vector<cv::Point>> contours;
+        cv::findContours(edges, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+        // 检查是否找到轮廓
+        if (contours.empty()) {
+            std::cerr << "No contours found in the eye region!" << std::endl;
+            continue;
+        }
+
+        // 椭圆拟合
         for (const auto& contour : contours) {
-            double area = cv::contourArea(contour);
-            if (area > max_area) {
-                max_area = area;
-                pupil_contour = contour;
+            if (contour.size() >= 5) {  // 椭圆拟合至少需要 5 个点
+                cv::RotatedRect ellipse = cv::fitEllipse(contour);
+                cv::Point2f center = ellipse.center;
+
+                // 转换为全局坐标
+                center.x += eye.x;
+                center.y += eye.y;
+
+                // 在原始图像上绘制椭圆
+                cv::ellipse(image_light, ellipse, cv::Scalar(0, 255, 0), 2);
+
+                // 在原始图像上绘制中心点
+                cv::circle(image_light, center, 3, cv::Scalar(0, 0, 255), -1);
+
             }
         }
     }
-
-    // 绘制椭圆
-    cv::Mat result = image_light.clone();
-    std::ofstream outFile("test/pupil_centers.txt"); // 创建文件流    
-
-
-    std::vector<cv::Point2f> centers;
-    // 遍历所有轮廓
-
-    for (const auto& contour : contours) {
-        if (contour.size() < 5) continue;  // 跳过点数不足5个的轮廓
-
-        // 拟合椭圆
-        cv::RotatedRect fitted_ellipse = cv::fitEllipse(contour);
-
-        // 计算轮廓的面积和长宽比
-        double area = cv::contourArea(contour);
-        double aspectRatio = std::abs(fitted_ellipse.size.width / fitted_ellipse.size.height);
-
-        // 根据面积和长宽比筛选合适的椭圆
-        if (area > 100 && area < 1000 && aspectRatio > 0.5 && aspectRatio < 2.0) {
-            // 获取椭圆的中心点
-            cv::Point2f center = fitted_ellipse.center;
-
-            // 去重：如果新点和已有点之间的距离小于阈值，则忽略
-            bool isDuplicate = false;
-            for (const auto& existing_center : centers) {
-                if (cv::norm(center - existing_center) < 10) { // 假设10像素以内认为是重复
-                    isDuplicate = true;
-                    break;
-                }
-            }
-
-            // 如果中心点不重复，则绘制并写入文件
-            if (!isDuplicate) {
-                centers.push_back(center);  // 添加到已检测中心点列表
-                cv::ellipse(result, fitted_ellipse, cv::Scalar(0, 255, 0), 2);  // 绘制椭圆
-                cv::circle(result, center, 2, cv::Scalar(0, 0, 255), -1);  // 绘制中心点
-
-                // 写入文件
-                outFile << "Center X: " << center.x << ", Center Y: " << center.y << std::endl;
-            }
-        }
-    }
-    outFile.close();
-
-    //erosion_size = 4; // 腐蚀操作的大小
-    //int dilation_size = 4; // 膨胀操作的大小
-    //cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1));
-    //cv::Mat opened;
-    //cv::morphologyEx(pupil_position, opened, cv::MORPH_OPEN, element);
-
-    //// Step 3: laplacion增强
-    //cv::Mat laplacian;
-    //cv::Laplacian(blurred_pupil_position, laplacian, CV_16S, 3); // 使用3x3的拉普拉斯核
-    //cv::convertScaleAbs(laplacian, laplacian); // 转换为8位无符号整数
     // 显示结果
-    //cv::imshow("pupil position", pupil_position);
-    //cv::imshow("2",blurred_pupil_position);
-
-    
-    //cv::imwrite("test/pupil_position.jpg", pupil_position);
-    //cv::imwrite("test/pupil_center.jpg", result);
-    //cv::imwrite("test/binary.jpg", binary);
-   /* cv::imwrite("test/log_result.jpg",laplacian);*/
-    //cv::imwrite("test/gaussion.jpg", blurred_pupil_position);
-    cv::imshow("3", result);
-    cv::imshow("4",edges);
+    cv::imshow("Original Image with Ellipses and Centers", image_light);
     cv::waitKey(0);
+
+
     return 0;
 }
