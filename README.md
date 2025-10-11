@@ -5,13 +5,14 @@ This project consists of multiple core modules (such as image preprocessing, gra
 
 ## Highlight
 This open-source repository contains the static gaze tracking and calibration algorithm.
+
 For the complete C#-based PC application featuring an interactive graphical interface, real-time gaze tracking & mapping, dynamic Kalman filter optimization, and user interaction controls, please refer to our collaborative open-source project (co-developed with my teammates):
 
 👉 [https://github.com/feast107/EyeTracking]
 
 ---
 
-🛠️ Features
+## 🛠️ Features
 
 ✅ Pupil detection and localization based on images
 
@@ -27,7 +28,8 @@ For the complete C#-based PC application featuring an interactive graphical inte
 
 ---
 
-🚀 Quick Start
+## 🚀 Quick Start
+
 1.	Clone the Repository
 git clone https://github.com/Myoossootis/Eyetracking.git
 
@@ -44,7 +46,8 @@ Compile the project and run the main program (main.cpp).
 
 ---
 
-📖 Usage Example / Sample Workflow
+## 📖 Usage Example / Sample Workflow
+
 Once the program is executed, it will load predefined test images (typically bright/dark pupil images)
 
 The system then performs pupil detection using the following key algorithmic steps:
@@ -65,13 +68,14 @@ After processing, the program outputs the detected pupil center location and pup
 
 ---
 
-📌 Other Information
+## 📌 Other Information
 🎊 Current Status: Prototype Development Phase
 The core algorithm has achieved high robustness in gaze tracking detection, and is capable of performing gaze parameter calibration under varying lighting conditions and camera angles.
 
 ---
 
-🔮 Future Plans
+## 🔮 Future Plans
+
 Improve algorithm runtime efficiency and reduce computational complexity
 
 Port the core algorithm to Verilog for deployment on our custom FPGA development board, enabling parallelized image processing and real-time gaze tracking at higher speed
