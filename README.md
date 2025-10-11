@@ -1,4 +1,4 @@
-## Eyetracking
+### Eyetracking
 Eyetracking is a prototype eye-tracking system developed based on C++, which aims to detect and track the position of the human pupil in real time through computer vision technology. It can be applied in scenarios such as human-computer interaction, attention analysis, and control of assistive devices. 
 
 This project consists of multiple core modules (such as image preprocessing, gradient calculation, pupil location, etc.) and provides several test images of myself (such as 1.bmp, 2.bmp, etc.) for algorithm verification and result demonstration.
@@ -10,7 +10,7 @@ For the complete C#-based PC application featuring an interactive graphical inte
 
 👉 [https://github.com/feast107/EyeTracking]
 
----
+
 
 ## 🛠️ Features
 
@@ -26,7 +26,7 @@ For the complete C#-based PC application featuring an interactive graphical inte
 
 ✅ Include multiple test images and intermediate process images (bmp/png format)
 
----
+
 
 ## 🚀 Quick Start
 
@@ -44,7 +44,7 @@ Select the appropriate platform (e.g., x64 or Win32) and build configuration (e.
 
 Compile the project and run the main program (main.cpp).
 
----
+
 
 ## 📖 Usage Example / Sample Workflow
 
@@ -66,13 +66,13 @@ The system then performs pupil detection using the following key algorithmic ste
 
 After processing, the program outputs the detected pupil center location and pupillary center & Purkinje spot, and visually marks them on the eye image.
 
----
+
 
 ## 📌 Other Information
 🎊 Current Status: Prototype Development Phase
 The core algorithm has achieved high robustness in gaze tracking detection, and is capable of performing gaze parameter calibration under varying lighting conditions and camera angles.
 
----
+
 
 ## 🔮 Future Plans
 
