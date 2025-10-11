@@ -1,4 +1,4 @@
-### Eyetracking
+## Eyetracking
 Eyetracking is a prototype eye-tracking system developed based on C++, which aims to detect and track the position of the human pupil in real time through computer vision technology. It can be applied in scenarios such as human-computer interaction, attention analysis, and control of assistive devices. 
 
 This project consists of multiple core modules (such as image preprocessing, gradient calculation, pupil location, etc.) and provides several test images of myself (such as 1.bmp, 2.bmp, etc.) for algorithm verification and result demonstration.
@@ -44,6 +44,7 @@ Select the appropriate platform (e.g., x64 or Win32) and build configuration (e.
 
 Compile the project and run the main program (main.cpp).
 
+⚠️ ​Note:​​ OpenCV is required. Ensure it is installed and properly configured in your IDE before building.
 
 
 ## 📖 Usage Example / Sample Workflow
