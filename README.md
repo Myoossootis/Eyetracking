@@ -7,7 +7,7 @@ This project consists of multiple core modules (such as image preprocessing, gra
 This open-source repository contains the static gaze tracking and calibration algorithm.
 For the complete C#-based PC application featuring an interactive graphical interface, real-time gaze tracking & mapping, dynamic Kalman filter optimization, and user interaction controls, please refer to our collaborative open-source project (co-developed with my teammates):
 
-👉 [Insert the link to the related C# / full-system GitHub repo here]
+👉 [https://github.com/feast107/EyeTracking]
 
 ---
 
@@ -30,24 +30,37 @@ For the complete C#-based PC application featuring an interactive graphical inte
 🚀 Quick Start
 1.	Clone the Repository
 git clone https://github.com/Myoossootis/Eyetracking.git
+
 2.	Compile and Run (Windows + Visual Studio Example)
 This project includes Visual Studio project files (tracking.sln &*. vcxproj). 
+
 The recommended way to build and run the code is as follows:
+
 Open the solution file tracking.sln using Visual Studio 2019 or 2022.
+
 Select the appropriate platform (e.g., x64 or Win32) and build configuration (e.g., Debug or Release).
+
 Compile the project and run the main program (main.cpp).
 
 ---
 
 📖 Usage Example / Sample Workflow
 Once the program is executed, it will load predefined test images (typically bright/dark pupil images)
+
 The system then performs pupil detection using the following key algorithmic steps:
+
 🚩Image differencing
+
 🚩Morphological processing
+
 🚩Gradient computation
+
 🚩Threshold segmentation
+
 🚩Hough circle fitting
+
 🚩🚩Etc.
+
 After processing, the program outputs the detected pupil center location and pupillary center & Purkinje spot, and visually marks them on the eye image.
 
 ---
@@ -60,6 +73,9 @@ The core algorithm has achieved high robustness in gaze tracking detection, and 
 
 🔮 Future Plans
 Improve algorithm runtime efficiency and reduce computational complexity
+
 Port the core algorithm to Verilog for deployment on our custom FPGA development board, enabling parallelized image processing and real-time gaze tracking at higher speed
+
 Commercialize our eye-tracking hardware/software system, aiming for mass production and sales of a domestically developed eye tracker
+
 Publish academic papers to contribute to the research community# Eyetracking
