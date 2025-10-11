@@ -45,6 +45,27 @@
     <ClCompile Include="face_eye_detect.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="single_eye_detect.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="single_reflection_detect.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Lunwen.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Lunwen2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Lunwen3.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="1.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="eye_region_detector.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="detection.h">

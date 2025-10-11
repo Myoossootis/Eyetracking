@@ -95,8 +95,8 @@ int main() {
                 // 在原始图像上绘制中心点
                 cv::circle(image_light, center, 3, cv::Scalar(0, 0, 255), -1);
 
-                // 写入文件
-                outFile << "Ellipse Center: (" << center.x << ", " << center.y << ")" << std::endl;
+                //// 写入文件
+                //outFile << "Ellipse Center: (" << center.x << ", " << center.y << ")" << std::endl;
             }
         }
     }

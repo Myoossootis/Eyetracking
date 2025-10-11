@@ -205,7 +205,7 @@ public:
                 float score = 0;
                 float blur_val = blurred.at<float>(cy, cx);
                 
-                int window_size = 15;
+                int window_size = 10;
                 int start_wy = std::max(0, cy - window_size);
                 int end_wy = std::min(image.rows, cy + window_size);
                 int start_wx = std::max(0, cx - window_size);
@@ -239,8 +239,8 @@ public:
         cv::Mat gradient = createGradient(float_image);
         
         cv::Mat gradient_vis(image.size(), CV_8UC1);
-        for (int y = 0; y < image.rows; y++) {
-            for (int x = 0; x < image.cols; x++) {
+        for (int y = 0; y < image.rows; y+=2) {
+            for (int x = 0; x < image.cols; x+=2) {
                 cv::Vec2f grad = gradient.at<cv::Vec2f>(y, x);
                 float magnitude = std::sqrt(grad[0] * grad[0] + grad[1] * grad[1]);
                 gradient_vis.at<uchar>(y, x) = cv::saturate_cast<uchar>(magnitude * 255);
@@ -252,7 +252,7 @@ public:
 
 int main() {
     // 读取图像
-    cv::Mat image = cv::imread("1.bmp", cv::IMREAD_GRAYSCALE);
+    cv::Mat image = cv::imread("26.bmp", cv::IMREAD_GRAYSCALE);
     if (image.empty()) {
         std::cerr << "Error: Unable to load image!" << std::endl;
         return -1;

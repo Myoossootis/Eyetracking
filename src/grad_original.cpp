@@ -107,7 +107,7 @@ public:
 
 int main() {
     // 读取图像
-    cv::Mat image = cv::imread("6.bmp", cv::IMREAD_GRAYSCALE);
+    cv::Mat image = cv::imread("1.bmp", cv::IMREAD_GRAYSCALE);
     if (image.empty()) {
         std::cerr << "Error: Unable to load image!" << std::endl;
         return -1;
@@ -187,9 +187,9 @@ int main() {
     cv::imshow("Right Gradient", right_gradient);
 
     // 保存结果
-    cv::imwrite("result.jpg", result);
-    cv::imwrite("left_gradient.jpg", left_gradient);
-    cv::imwrite("right_gradient.jpg", right_gradient);
+    cv::imwrite("result1.jpg", result);
+    //cv::imwrite("left_gradient.jpg", left_gradient);
+    //cv::imwrite("right_gradient.jpg", right_gradient);
     
     std::cout << "Left pupil absolute position: (" << left_pupil_abs.x << ", " << left_pupil_abs.y << ")" << std::endl;
     std::cout << "Right pupil absolute position: (" << right_pupil_abs.x << ", " << right_pupil_abs.y << ")" << std::endl;
