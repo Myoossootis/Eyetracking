@@ -1,137 +1,112 @@
-// reflection.cpp
 #include "detection.h"
 #include <opencv2/opencv.hpp>
-#include <iostream>
+#include <vector>
 #include <algorithm>
-#include <fstream>
-#include <iomanip> 
 
-// ¼ÓÔØÍ¼Ïñº¯Êı
-cv::Mat load_image(const std::string& file_path) {
-    cv::Mat image = cv::imread(file_path, cv::IMREAD_GRAYSCALE);
-    if (image.empty()) {
-        std::cerr << "Error: Unable to load image: " << file_path << std::endl;
+/**
+ * @brief å¯¹çœ¼ç›åŒºåŸŸè¿›è¡Œé¢„å¤„ç†ï¼Œä»¥å‡¸æ˜¾åå°„å…‰æ–‘ã€‚
+ *
+ * @param eye_region çœ¼ç›åŒºåŸŸçš„å›¾åƒã€‚
+ * @return ç»è¿‡å¤„ç†åï¼Œå¯èƒ½åŒ…å«å…‰æ–‘çš„äºŒå€¼å›¾åƒã€‚
+ */
+cv::Mat preprocess_for_reflection(const cv::Mat& eye_region) {
+    cv::Mat gray, blurred, binary;
+    if (eye_region.channels() == 3) {
+        cv::cvtColor(eye_region, gray, cv::COLOR_BGR2GRAY);
+    } else {
+        gray = eye_region.clone();
     }
-    return image;
+
+    // ä½¿ç”¨é«˜æ–¯æ¨¡ç³Šå¹³æ»‘å›¾åƒï¼Œä¸ºé˜ˆå€¼åŒ–åšå‡†å¤‡
+    cv::GaussianBlur(gray, blurred, cv::Size(3, 3), 0);
+
+    // ä½¿ç”¨ä¸€ä¸ªè¾ƒé«˜çš„é˜ˆå€¼æ¥åˆ†ç¦»å‡ºæ˜äº®çš„åå°„å…‰æ–‘
+    cv::threshold(blurred, binary, 230, 255, cv::THRESH_BINARY);
+
+    return binary;
 }
 
-// ¼ì²âÑÛ¾¦
-std::vector<cv::Rect> detect_eyes(const cv::Mat& image) {
-    std::vector<cv::Rect> eyes;
+/**
+ * @brief ä»è½®å»“ä¸­æ‰¾åˆ°æœ€å¤§çš„ä¸€ä¸ªï¼Œå¹¶è®¡ç®—å…¶ä¸­å¿ƒã€‚
+ *
+ * @param contours è½®å»“çš„å‘é‡ã€‚
+ * @param eye_region_offset çœ¼ç›åŒºåŸŸåœ¨åŸå›¾ä¸­çš„åç§»é‡ã€‚
+ * @return åå°„å…‰æ–‘çš„ä¸­å¿ƒåæ ‡ã€‚å¦‚æœæœªæ‰¾åˆ°ï¼Œåˆ™è¿”å› (-1, -1)ã€‚
+ */
+cv::Point2f find_largest_contour_center(const std::vector<std::vector<cv::Point>>& contours, const cv::Point& eye_region_offset) {
+    if (contours.empty()) {
+        return cv::Point2f(-1, -1);
+    }
+
+    // å¯»æ‰¾é¢ç§¯æœ€å¤§çš„è½®å»“
+    double max_area = 0;
+    int max_area_idx = -1;
+    for (size_t i = 0; i < contours.size(); ++i) {
+        double area = cv::contourArea(contours[i]);
+        if (area > max_area) {
+            max_area = area;
+            max_area_idx = i;
+        }
+    }
+
+    if (max_area_idx != -1) {
+        // è®¡ç®—æœ€å¤§è½®å»“çš„çŸ©
+        cv::Moments mu = cv::moments(contours[max_area_idx]);
+        // è®¡ç®—ä¸­å¿ƒç‚¹ï¼Œå¹¶åŠ ä¸Šçœ¼ç›åŒºåŸŸçš„åç§»
+        return cv::Point2f(mu.m10 / mu.m00 + eye_region_offset.x, mu.m01 / mu.m00 + eye_region_offset.y);
+    }
+
+    return cv::Point2f(-1, -1);
+}
+
+void detect_reflection(const std::string& image_path, const std::string& output_file) {
+    cv::Mat image = cv::imread(image_path);
+    if (image.empty()) {
+        std::cerr << "Error: Could not load image for reflection detection." << std::endl;
+        return;
+    }
+
+    // ä½¿ç”¨Haarçº§è”åˆ†ç±»å™¨æ£€æµ‹çœ¼ç›
     cv::CascadeClassifier eye_cascade;
     if (!eye_cascade.load("haarcascades/haarcascade_eye.xml")) {
-        std::cerr << "Error: Unable to load eye cascade classifier!" << std::endl;
-        return eyes;
+        std::cerr << "Error: Could not load eye cascade classifier." << std::endl;
+        return;
     }
+
+    std::vector<cv::Rect> eyes;
     eye_cascade.detectMultiScale(image, eyes, 1.1, 4, 0, cv::Size(30, 30));
-    return eyes;
-}
 
-// ´¦ÀíÑÛ¾¦ÇøÓò£º×î´óÖµÂË²¨ºÍÖĞÖµÂË²¨µÄ×éºÏ + ²î·ÖÔËËã
-cv::Mat process_eye_area(const cv::Mat& eye, int max_filter_size, int median_filter_size) {
-    // È·±£ÂË²¨Æ÷³ß´çÎªÆæÊı
-    max_filter_size = max_filter_size % 2 == 0 ? max_filter_size + 1 : max_filter_size;
-    median_filter_size = median_filter_size % 2 == 0 ? median_filter_size + 1 : median_filter_size;
+    if (eyes.empty()) {
+        std::cerr << "Warning: No eyes detected in reflection image." << std::endl;
+        return;
+    }
 
-    // ×î´óÖµÂË²¨
-    cv::Mat max_filtered;
-    cv::dilate(eye, max_filtered, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(max_filter_size, max_filter_size)));
+    // å‡è®¾æˆ‘ä»¬åªå…³å¿ƒç¬¬ä¸€ä¸ªæ£€æµ‹åˆ°çš„çœ¼ç›
+    cv::Rect eye_roi = eyes[0];
+    cv::Mat eye_region = image(eye_roi);
 
-    // ÖĞÖµÂË²¨
-    cv::Mat median_filtered;
-    cv::medianBlur(eye, median_filtered, median_filter_size);
+    // é¢„å¤„ç†çœ¼ç›åŒºåŸŸä»¥å¯»æ‰¾å…‰æ–‘
+    cv::Mat binary_reflection = preprocess_for_reflection(eye_region);
 
-    // Ê¹ÓÃ×î´óÖµÂË²¨½á¹û¼õÈ¥ÖĞÖµÂË²¨½á¹ûµÃµ½²î·ÖÍ¼Ïñ
-    cv::Mat result;
-    cv::subtract(max_filtered, median_filtered, result);
-
-    return result;
-}
-
-// ÌáÈ¡ÁÁ°ßÖĞĞÄ²¢ÔÚÔ­Í¼ÉÏ±ê¼Ç³öÀ´
-void extract_bright_spot_center(const cv::Mat& result, const cv::Rect& eye_rect, cv::Mat& original, std::ofstream& outFile) {
-    // ¶Ô²î·ÖÍ¼Ïñ½øĞĞ¶şÖµ»¯´¦Àí
-    cv::Mat binary;
-    cv::threshold(result, binary, 50, 255, cv::THRESH_BINARY); // ãĞÖµ¿ÉÒÔ¸ù¾İÊµ¼ÊÇé¿öµ÷Õû
-
-    // Ñ°ÕÒÂÖÀª
+    // å¯»æ‰¾è½®å»“
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(binary_reflection, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    if (contours.empty()) {
-        std::cerr << "No bright spot detected!" << std::endl;
-        return;
+    // æ‰¾åˆ°æœ€å¤§è½®å»“çš„ä¸­å¿ƒ
+    cv::Point2f reflection_center = find_largest_contour_center(contours, eye_roi.tl());
+
+    // ä¿å­˜ç»“æœ
+    if (reflection_center.x != -1) {
+        std::ofstream outfile(output_file);
+        if (outfile.is_open()) {
+            outfile << reflection_center.x << " " << reflection_center.y << std::endl;
+            outfile.close();
+        }
+
+        // åœ¨å›¾åƒä¸Šæ ‡è®°å…‰æ–‘ä¸­å¿ƒ
+        cv::circle(image, reflection_center, 3, cv::Scalar(0, 0, 255), -1);
+        // å¯é€‰ï¼šæ˜¾ç¤ºç»“æœ
+        // cv::imshow("Reflection Detection", image);
+        // cv::waitKey(0);
     }
-
-    // ÕÒµ½Ãæ»ı×î´óµÄÂÖÀª×÷ÎªÁÁ°ß
-    auto largest_contour = *std::max_element(contours.begin(), contours.end(), [](const auto& a, const auto& b) {
-        return cv::contourArea(a) < cv::contourArea(b);
-        });
-
-    // ¼ÆËãÖĞĞÄ
-    cv::Moments m = cv::moments(largest_contour);
-    if (m.m00 == 0) {
-        std::cerr << "No bright spot detected!" << std::endl;
-        return;
-    }
-
-    int cx = static_cast<int>(m.m10 / m.m00);
-    int cy = static_cast<int>(m.m01 / m.m00);
-
-    // ÔÚÔ­Í¼ÉÏ±ê¼ÇÁÁ°ßÖĞĞÄ²¢Êä³ö×ø±ê
-    cv::circle(original, cv::Point(eye_rect.x + cx, eye_rect.y + cy), 3, cv::Scalar(0, 0, 255), -1); // »æÖÆºìµã
-    outFile << std::fixed << std::setprecision(3);  // ÉèÖÃĞ¡Êıµã¾«¶ÈÎª3Î»
-    // Ğ´ÈëÎÄ¼ş
-    outFile << "Bright Spot Center: (" << (eye_rect.x + cx) << ", " << (eye_rect.y + cy) << ")" << std::endl;
-}
-
-// ¹â°ß¼ì²âÖ÷º¯Êı
-void detect_reflection(const std::string& image_path, const std::string& output_file) {
-    // ¼ÓÔØÍ¼Ïñ
-    cv::Mat image = load_image(image_path);
-    if (image.empty()) {
-        return;
-    }
-
-    // ¼ì²âÑÛ¾¦
-    std::vector<cv::Rect> eyes = detect_eyes(image);
-    if (eyes.size() != 2) {
-        std::cerr << "Error: Exactly two eyes are required for this operation!" << std::endl;
-        return;
-    }
-
-    // °´x×ø±êÅÅĞò£¬È·±£×óÑÛÔÚÇ°£¬ÓÒÑÛÔÚºó
-    std::sort(eyes.begin(), eyes.end(), [](const cv::Rect& a, const cv::Rect& b) {
-        return a.x < b.x;
-        });
-
-    // ·Ö±ğ»ñÈ¡×óÓÒÑÛÇøÓò
-    cv::Mat left_eye = image(eyes[0]);
-    cv::Mat right_eye = image(eyes[1]);
-
-    // ´¦Àí×óÓÒÑÛÇøÓò
-    cv::Mat result_left = process_eye_area(left_eye, 5, 3);
-    cv::Mat result_right = process_eye_area(right_eye, 5, 3);
-
-    // ´ò¿ªÊä³öÎÄ¼ş
-    std::ofstream outFile(output_file);
-    if (!outFile.is_open()) {
-        std::cerr << "Error: Unable to open output file!" << std::endl;
-        return;
-    }
-
-    // ÌáÈ¡×óÓÒÑÛÁÁ°ßÖĞĞÄ²¢ÔÚÔ­Í¼ÉÏ±ê¼Ç
-    extract_bright_spot_center(result_left, eyes[0], image, outFile);
-    extract_bright_spot_center(result_right, eyes[1], image, outFile);
-
-    // ¹Ø±ÕÎÄ¼ş
-    outFile.close();
-
-    // ÏÔÊ¾½á¹û
-    cv::imshow("Original Image with Bright Spot Centers", image);
-    cv::imshow("Processed Left Eye", result_left);
-    cv::imshow("Processed Right Eye", result_right);
-
-    // µÈ´ı°´¼üÍË³ö
-    cv::waitKey(0);
 }
